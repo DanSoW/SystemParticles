@@ -68,14 +68,19 @@ namespace SystemParticles
             {
                 X = picDisplay.Width / 2,
                 Y = picDisplay.Height / 2
-            });
+            });*/
 
             // снова гравитон
-            emitter.impactPoints.Add(new GravityPoint
+            /*emitter.impactPoints.Add(new GravityPoint
             {
                 X = (float)(picDisplay.Width * 0.75),
                 Y = picDisplay.Height / 2
-            });*/
+            });
+            */
+            //interface initializing
+
+            _cmbTypeGraviton.Items.Add("гравитон");
+            _cmbTypeGraviton.Items.Add("антигравитон");
         }
 
         private void EmptyParticleInterface()
@@ -147,29 +152,6 @@ namespace SystemParticles
             picDisplay.Invalidate();
         }
 
-		private void picDisplay_Click(object sender, EventArgs e)
-		{
-            if(start == true)
-			{
-                MessageBox.Show("Ошибка: нельзя захватить частицу при движении частиц");
-                return;
-			}
-            currentParticle = emitter.GetClickedParticle();
-            if(currentParticle == null)
-                return;
-            //открытие режима корректирования частицы
-
-            _tbrRadiusParticle.Value = currentParticle.Radius;
-            _tbrLifeParticle.Value   = (int)currentParticle.Life;
-            _tbrSpeedXParticle.Value = (int)(currentParticle.SpeedX);
-            _tbrSpeedYParticle.Value = (int)(currentParticle.SpeedY);
-
-            _txtRadiusValue.Text = currentParticle.Radius.ToString();
-            _txtLifeValue.Text = ((int)currentParticle.Life).ToString();
-            _txtSpeedXParticle.Text = ((int)(currentParticle.SpeedX)).ToString();
-            _txtSpeedYParticle.Text = ((int)(currentParticle.SpeedY)).ToString();
-        }
-
 		private void _tbrRadiusParticle_Scroll(object sender, EventArgs e)
 		{
             if(currentParticle == null)
@@ -223,5 +205,75 @@ namespace SystemParticles
             timer1_Tick(sender, e);
             previous = false;
         }
+
+
+        private bool ValidateComboBox(ComboBox cmb, List<string> lists)
+		{
+            return (lists.IndexOf(cmb.Text) >= 0);
+		}
+		private void picDisplay_MouseClick(object sender, MouseEventArgs e)
+		{
+            if(e.Button == MouseButtons.Right) //система создания точки
+			{
+                if((!ValidateComboBox(_cmbTypeGraviton, new List<string>{"гравитон", "антигравитон"})) 
+                    || (_txtInputPower.Text.Length == 0)){
+                    MessageBox.Show("Ошибка: не корректное заполнение полей для создания точки!");
+                    return;
+				}
+
+				if(_cmbTypeGraviton.Text.Equals("гравитон"))
+				{
+                    emitter.impactPoints.Add(new GravityPoint
+                    {
+                        X = emitter.MousePositionX,
+                        Y = emitter.MousePositionY,
+                        Power = int.Parse(_txtInputPower.Text)
+                    });
+                }else if(_cmbTypeGraviton.Text.Equals("антигравитон"))
+				{
+                    emitter.impactPoints.Add(new AntiGravityPoint
+                    {
+                        X = emitter.MousePositionX,
+                        Y = emitter.MousePositionY,
+                        Power = int.Parse(_txtInputPower.Text)
+                    });
+				}
+            }else if(e.Button == MouseButtons.Left)
+			{
+                if(start == true)
+                {
+                    MessageBox.Show("Ошибка: нельзя захватить частицу при движении частиц");
+                    return;
+                }
+                currentParticle = emitter.GetClickedParticle();
+                if(currentParticle == null)
+                    return;
+                //открытие режима корректирования частицы
+
+                _tbrRadiusParticle.Value = currentParticle.Radius;
+                _tbrLifeParticle.Value = (int)currentParticle.Life;
+                _tbrSpeedXParticle.Value = (int)(currentParticle.SpeedX);
+                _tbrSpeedYParticle.Value = (int)(currentParticle.SpeedY);
+
+                _txtRadiusValue.Text = currentParticle.Radius.ToString();
+                _txtLifeValue.Text = ((int)currentParticle.Life).ToString();
+                _txtSpeedXParticle.Text = ((int)(currentParticle.SpeedX)).ToString();
+                _txtSpeedYParticle.Text = ((int)(currentParticle.SpeedY)).ToString();
+            }
+		}
+
+		private void _txtInputPower_KeyPress(object sender, KeyPressEventArgs e)
+		{
+            char number = e.KeyChar;
+            if((!Char.IsDigit(number)) && (number != 8))
+            {
+                e.Handled = true;
+            }
+        }
+
+		private void _btnClearGraviton_Click(object sender, EventArgs e)
+		{
+            emitter.impactPoints.Clear();
+		}
 	}
 }

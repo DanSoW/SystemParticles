@@ -49,6 +49,12 @@
 			this._tbrSpeedYParticle = new System.Windows.Forms.TrackBar();
 			this._txtSpeedYParticle = new System.Windows.Forms.Label();
 			this._txtLabelSpeedYParticle = new System.Windows.Forms.Label();
+			this._txtLabelGraviton = new System.Windows.Forms.Label();
+			this._cmbTypeGraviton = new System.Windows.Forms.ComboBox();
+			this._txtLabelTypeGraviton = new System.Windows.Forms.Label();
+			this._txtLabelPower = new System.Windows.Forms.Label();
+			this._txtInputPower = new System.Windows.Forms.TextBox();
+			this._btnClearGraviton = new System.Windows.Forms.Button();
 			((System.ComponentModel.ISupportInitialize)(this.picDisplay)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this._tbSpeedNext)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this._tbrRadiusParticle)).BeginInit();
@@ -64,7 +70,7 @@
 			this.picDisplay.Size = new System.Drawing.Size(621, 374);
 			this.picDisplay.TabIndex = 0;
 			this.picDisplay.TabStop = false;
-			this.picDisplay.Click += new System.EventHandler(this.picDisplay_Click);
+			this.picDisplay.MouseClick += new System.Windows.Forms.MouseEventHandler(this.picDisplay_MouseClick);
 			this.picDisplay.MouseLeave += new System.EventHandler(this.picDisplay_MouseLeave);
 			this.picDisplay.MouseMove += new System.Windows.Forms.MouseEventHandler(this.picDisplay_MouseMove);
 			// 
@@ -109,7 +115,7 @@
 			// 
 			this._txtLabelRadius.AutoSize = true;
 			this._txtLabelRadius.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
-			this._txtLabelRadius.Location = new System.Drawing.Point(664, 35);
+			this._txtLabelRadius.Location = new System.Drawing.Point(839, 13);
 			this._txtLabelRadius.Name = "_txtLabelRadius";
 			this._txtLabelRadius.Size = new System.Drawing.Size(60, 17);
 			this._txtLabelRadius.TabIndex = 6;
@@ -119,7 +125,7 @@
 			// 
 			this._txtRadiusValue.AutoSize = true;
 			this._txtRadiusValue.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
-			this._txtRadiusValue.Location = new System.Drawing.Point(730, 35);
+			this._txtRadiusValue.Location = new System.Drawing.Point(905, 13);
 			this._txtRadiusValue.Name = "_txtRadiusValue";
 			this._txtRadiusValue.Size = new System.Drawing.Size(16, 17);
 			this._txtRadiusValue.TabIndex = 7;
@@ -127,7 +133,7 @@
 			// 
 			// _tbrRadiusParticle
 			// 
-			this._tbrRadiusParticle.Location = new System.Drawing.Point(658, 55);
+			this._tbrRadiusParticle.Location = new System.Drawing.Point(833, 33);
 			this._tbrRadiusParticle.Name = "_tbrRadiusParticle";
 			this._tbrRadiusParticle.Size = new System.Drawing.Size(104, 45);
 			this._tbrRadiusParticle.TabIndex = 8;
@@ -137,7 +143,7 @@
 			// 
 			this._txtLabelLife.AutoSize = true;
 			this._txtLabelLife.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
-			this._txtLabelLife.Location = new System.Drawing.Point(667, 107);
+			this._txtLabelLife.Location = new System.Drawing.Point(842, 85);
 			this._txtLabelLife.Name = "_txtLabelLife";
 			this._txtLabelLife.Size = new System.Drawing.Size(35, 17);
 			this._txtLabelLife.TabIndex = 9;
@@ -147,7 +153,7 @@
 			// 
 			this._txtLifeValue.AutoSize = true;
 			this._txtLifeValue.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
-			this._txtLifeValue.Location = new System.Drawing.Point(730, 107);
+			this._txtLifeValue.Location = new System.Drawing.Point(905, 85);
 			this._txtLifeValue.Name = "_txtLifeValue";
 			this._txtLifeValue.Size = new System.Drawing.Size(16, 17);
 			this._txtLifeValue.TabIndex = 10;
@@ -155,7 +161,7 @@
 			// 
 			// _tbrLifeParticle
 			// 
-			this._tbrLifeParticle.Location = new System.Drawing.Point(658, 127);
+			this._tbrLifeParticle.Location = new System.Drawing.Point(833, 105);
 			this._tbrLifeParticle.Name = "_tbrLifeParticle";
 			this._tbrLifeParticle.Size = new System.Drawing.Size(104, 45);
 			this._tbrLifeParticle.TabIndex = 11;
@@ -194,7 +200,7 @@
 			// 
 			this._txtLabelSpeedXParticle.AutoSize = true;
 			this._txtLabelSpeedXParticle.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
-			this._txtLabelSpeedXParticle.Location = new System.Drawing.Point(667, 179);
+			this._txtLabelSpeedXParticle.Location = new System.Drawing.Point(842, 157);
 			this._txtLabelSpeedXParticle.Name = "_txtLabelSpeedXParticle";
 			this._txtLabelSpeedXParticle.Size = new System.Drawing.Size(66, 17);
 			this._txtLabelSpeedXParticle.TabIndex = 17;
@@ -204,7 +210,7 @@
 			// 
 			this._txtSpeedXParticle.AutoSize = true;
 			this._txtSpeedXParticle.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
-			this._txtSpeedXParticle.Location = new System.Drawing.Point(730, 179);
+			this._txtSpeedXParticle.Location = new System.Drawing.Point(905, 157);
 			this._txtSpeedXParticle.Name = "_txtSpeedXParticle";
 			this._txtSpeedXParticle.Size = new System.Drawing.Size(16, 17);
 			this._txtSpeedXParticle.TabIndex = 18;
@@ -212,7 +218,7 @@
 			// 
 			// _tbrSpeedXParticle
 			// 
-			this._tbrSpeedXParticle.Location = new System.Drawing.Point(658, 210);
+			this._tbrSpeedXParticle.Location = new System.Drawing.Point(833, 188);
 			this._tbrSpeedXParticle.Name = "_tbrSpeedXParticle";
 			this._tbrSpeedXParticle.Size = new System.Drawing.Size(104, 45);
 			this._tbrSpeedXParticle.TabIndex = 19;
@@ -220,7 +226,7 @@
 			// 
 			// _tbrSpeedYParticle
 			// 
-			this._tbrSpeedYParticle.Location = new System.Drawing.Point(658, 292);
+			this._tbrSpeedYParticle.Location = new System.Drawing.Point(833, 270);
 			this._tbrSpeedYParticle.Name = "_tbrSpeedYParticle";
 			this._tbrSpeedYParticle.Size = new System.Drawing.Size(104, 45);
 			this._tbrSpeedYParticle.TabIndex = 22;
@@ -230,7 +236,7 @@
 			// 
 			this._txtSpeedYParticle.AutoSize = true;
 			this._txtSpeedYParticle.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
-			this._txtSpeedYParticle.Location = new System.Drawing.Point(730, 261);
+			this._txtSpeedYParticle.Location = new System.Drawing.Point(905, 239);
 			this._txtSpeedYParticle.Name = "_txtSpeedYParticle";
 			this._txtSpeedYParticle.Size = new System.Drawing.Size(16, 17);
 			this._txtSpeedYParticle.TabIndex = 21;
@@ -240,17 +246,80 @@
 			// 
 			this._txtLabelSpeedYParticle.AutoSize = true;
 			this._txtLabelSpeedYParticle.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
-			this._txtLabelSpeedYParticle.Location = new System.Drawing.Point(667, 261);
+			this._txtLabelSpeedYParticle.Location = new System.Drawing.Point(842, 239);
 			this._txtLabelSpeedYParticle.Name = "_txtLabelSpeedYParticle";
 			this._txtLabelSpeedYParticle.Size = new System.Drawing.Size(66, 17);
 			this._txtLabelSpeedYParticle.TabIndex = 20;
 			this._txtLabelSpeedYParticle.Text = "Speed Y:";
 			// 
+			// _txtLabelGraviton
+			// 
+			this._txtLabelGraviton.AutoSize = true;
+			this._txtLabelGraviton.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
+			this._txtLabelGraviton.Location = new System.Drawing.Point(652, 13);
+			this._txtLabelGraviton.Name = "_txtLabelGraviton";
+			this._txtLabelGraviton.Size = new System.Drawing.Size(114, 17);
+			this._txtLabelGraviton.TabIndex = 23;
+			this._txtLabelGraviton.Text = "Создание точки";
+			// 
+			// _cmbTypeGraviton
+			// 
+			this._cmbTypeGraviton.FormattingEnabled = true;
+			this._cmbTypeGraviton.Location = new System.Drawing.Point(655, 105);
+			this._cmbTypeGraviton.Name = "_cmbTypeGraviton";
+			this._cmbTypeGraviton.Size = new System.Drawing.Size(121, 21);
+			this._cmbTypeGraviton.TabIndex = 24;
+			// 
+			// _txtLabelTypeGraviton
+			// 
+			this._txtLabelTypeGraviton.AutoSize = true;
+			this._txtLabelTypeGraviton.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
+			this._txtLabelTypeGraviton.Location = new System.Drawing.Point(652, 85);
+			this._txtLabelTypeGraviton.Name = "_txtLabelTypeGraviton";
+			this._txtLabelTypeGraviton.Size = new System.Drawing.Size(108, 17);
+			this._txtLabelTypeGraviton.TabIndex = 25;
+			this._txtLabelTypeGraviton.Text = "Тип гравитона:";
+			// 
+			// _txtLabelPower
+			// 
+			this._txtLabelPower.AutoSize = true;
+			this._txtLabelPower.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
+			this._txtLabelPower.Location = new System.Drawing.Point(652, 45);
+			this._txtLabelPower.Name = "_txtLabelPower";
+			this._txtLabelPower.Size = new System.Drawing.Size(51, 17);
+			this._txtLabelPower.TabIndex = 26;
+			this._txtLabelPower.Text = "Power:";
+			// 
+			// _txtInputPower
+			// 
+			this._txtInputPower.Location = new System.Drawing.Point(710, 45);
+			this._txtInputPower.Name = "_txtInputPower";
+			this._txtInputPower.Size = new System.Drawing.Size(63, 20);
+			this._txtInputPower.TabIndex = 27;
+			this._txtInputPower.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this._txtInputPower_KeyPress);
+			// 
+			// _btnClearGraviton
+			// 
+			this._btnClearGraviton.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
+			this._btnClearGraviton.Location = new System.Drawing.Point(655, 142);
+			this._btnClearGraviton.Name = "_btnClearGraviton";
+			this._btnClearGraviton.Size = new System.Drawing.Size(147, 32);
+			this._btnClearGraviton.TabIndex = 28;
+			this._btnClearGraviton.Text = "Удалить все точки";
+			this._btnClearGraviton.UseVisualStyleBackColor = true;
+			this._btnClearGraviton.Click += new System.EventHandler(this._btnClearGraviton_Click);
+			// 
 			// Window
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(791, 487);
+			this.ClientSize = new System.Drawing.Size(960, 487);
+			this.Controls.Add(this._btnClearGraviton);
+			this.Controls.Add(this._txtInputPower);
+			this.Controls.Add(this._txtLabelPower);
+			this.Controls.Add(this._txtLabelTypeGraviton);
+			this.Controls.Add(this._cmbTypeGraviton);
+			this.Controls.Add(this._txtLabelGraviton);
 			this.Controls.Add(this._tbrSpeedYParticle);
 			this.Controls.Add(this._txtSpeedYParticle);
 			this.Controls.Add(this._txtLabelSpeedYParticle);
@@ -305,6 +374,12 @@
 		private System.Windows.Forms.TrackBar _tbrSpeedYParticle;
 		private System.Windows.Forms.Label _txtSpeedYParticle;
 		private System.Windows.Forms.Label _txtLabelSpeedYParticle;
+		private System.Windows.Forms.Label _txtLabelGraviton;
+		private System.Windows.Forms.ComboBox _cmbTypeGraviton;
+		private System.Windows.Forms.Label _txtLabelTypeGraviton;
+		private System.Windows.Forms.Label _txtLabelPower;
+		private System.Windows.Forms.TextBox _txtInputPower;
+		private System.Windows.Forms.Button _btnClearGraviton;
 	}
 }
 
