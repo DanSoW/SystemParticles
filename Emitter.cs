@@ -40,7 +40,7 @@ namespace SystemParticles
 
 		public virtual Particle CreateParticle()
 		{
-			var particle = new ParticleColorful();
+			var particle = new ParticleInformation();
 			particle.FromColor = ColorFrom;
 			particle.ToColor = ColorTo;
 			particle.Life = Particle.rand.Next(LifeMin, LifeMax);
@@ -206,22 +206,45 @@ namespace SystemParticles
 		}
 	}
 
-	public class InformationEmitter : TopEmitter
+	public class LeftEmitter : Emitter
 	{
-		public override Particle CreateParticle()
+		public override void ResetParticle(Particle particle)
 		{
-			var particle = new ParticleInformation();
-			particle.FromColor = ColorFrom;
-			particle.ToColor = ColorTo;
-			particle.Life = Particle.rand.Next(LifeMin, LifeMax);
-			particle.LifeMax = LifeMax;
-			particle.LifeMin = LifeMin;
-			particle.RadiusMax = RadiusMax;
-			particle.RadiusMin = RadiusMin;
-			particle.Height = Height;
-			particle.Width = Width;
+			base.ResetParticle(particle);
 
-			return particle;
+			particle.X = 0;
+			particle.Y = Particle.rand.Next(Height);
+
+			particle.SpeedY = Particle.rand.Next(-2, 2);
+			particle.SpeedX = 1;
+		}
+	}
+
+	public class RightEmitter : Emitter
+	{
+		public override void ResetParticle(Particle particle)
+		{
+			base.ResetParticle(particle);
+
+			particle.X = Width;
+			particle.Y = Particle.rand.Next(Height);
+
+			particle.SpeedY = Particle.rand.Next(-2, 2);
+			particle.SpeedX = -1;
+		}
+	}
+
+	public class BottomEmitter : Emitter
+	{
+		public override void ResetParticle(Particle particle)
+		{
+			base.ResetParticle(particle);
+
+			particle.X = Particle.rand.Next(Width);
+			particle.Y = Height;
+
+			particle.SpeedY = -1;
+			particle.SpeedX = Particle.rand.Next(-2, 2);
 		}
 	}
 
