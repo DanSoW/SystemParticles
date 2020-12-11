@@ -21,6 +21,8 @@ namespace SystemParticles
         List<string> typeGraviton = null;
         List<string> typeStandEmitter = null;
 
+        int MouseClickX = 0;
+        int MouseClickY = 0;
         
         public Window()
 		{
@@ -42,7 +44,7 @@ namespace SystemParticles
                 GravitationY = 0.25f,
                 ColorFrom = Color.White,
                 ColorTo = Color.FromArgb(0, Color.Black),
-                ParticlesPerTick = 10,
+                ParticlesPerTick = 1,
                 X = picDisplay.Width / 2,
                 Y = picDisplay.Height / 2,
             };
@@ -107,19 +109,20 @@ namespace SystemParticles
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            foreach(var emit in emitters)
+            using(var g = Graphics.FromImage(picDisplay.Image))
             {
-                if(start)
-                    emit.UpdateState();
-                else if(previous)
-                    emit.UpdateStatePrevious();
-
-                using(var g = Graphics.FromImage(picDisplay.Image))
+                g.Clear(Color.Black);
+                foreach(var emit in emitters)
                 {
-                    g.Clear(Color.Black);
+                    if(start)
+                        emit.UpdateState();
+                    else if(previous)
+                        emit.UpdateStatePrevious();
+
                     emit.Render(g);
                 }
             }
+ 
             picDisplay.Invalidate();
         }
 
@@ -152,6 +155,15 @@ namespace SystemParticles
             start = true;
             timer1_Tick(sender, e);
             start = false;
+
+            //log
+            string mess = "";
+            foreach(var i in emitters)
+			{
+                mess += i.particles.Count.ToString() + "\n";
+			}
+
+            MessageBox.Show(emitters.Count.ToString() + " - size \n" + mess);
 		}
 
 		private void _tbrRadiusParticle_Scroll(object sender, EventArgs e)
@@ -190,8 +202,8 @@ namespace SystemParticles
 		{
             foreach(var emit in emitters)
             {
-                emit.MousePositionX = -1;
-                emit.MousePositionY = -1;
+                emit.MousePositionX = -100;
+                emit.MousePositionY = -100;
             }
         }
 
@@ -215,31 +227,43 @@ namespace SystemParticles
 		}
 		private void picDisplay_MouseClick(object sender, MouseEventArgs e)
 		{
+            MouseClickX = e.X;
+            MouseClickY = e.Y;
+
+            _txtEmitterX.Text = MouseClickX.ToString();
+            _txtEmitterY.Text = MouseClickY.ToString();
+
             if(e.Button == MouseButtons.Right) //система создания точки
 			{
                 if((!ValidateComboBox(_cmbTypeGraviton, typeGraviton)) 
                     || (_txtInputPower.Text.Length == 0)){
-                    MessageBox.Show("Ошибка: не корректное заполнение полей для создания точки!");
+                    MessageBox.Show("Ошибка: не корректное заполнение полей для добавления точки!");
                     return;
 				}
 
 				if(_cmbTypeGraviton.Text.Equals(typeGraviton[0]))
 				{
-                    emitter.impactPoints.Add(new GravityPoint
-                    {
-                        X = emitter.MousePositionX,
-                        Y = emitter.MousePositionY,
-                        Power = int.Parse(_txtInputPower.Text)
-                    });
+                    foreach(var emit in emitters)
+					{
+                        emit.impactPoints.Add(new GravityPoint
+                        {
+                            X = emit.MousePositionX,
+                            Y = emit.MousePositionY,
+                            Power = int.Parse(_txtInputPower.Text)
+                        });
+                    }
                 }else if(_cmbTypeGraviton.Text.Equals(typeGraviton[1]))
 				{
-                    emitter.impactPoints.Add(new AntiGravityPoint
+                    foreach(var emit in emitters)
                     {
-                        X = emitter.MousePositionX,
-                        Y = emitter.MousePositionY,
-                        Power = int.Parse(_txtInputPower.Text)
-                    });
-				}
+                        emit.impactPoints.Add(new AntiGravityPoint
+                        {
+                            X = emit.MousePositionX,
+                            Y = emit.MousePositionY,
+                            Power = int.Parse(_txtInputPower.Text)
+                        });
+                    }
+                }
             }else if(e.Button == MouseButtons.Left)
 			{
                 if(start == true)
@@ -247,7 +271,10 @@ namespace SystemParticles
                     MessageBox.Show("Ошибка: нельзя захватить частицу при движении частиц");
                     return;
                 }
-                currentParticle = emitter.GetClickedParticle();
+
+                foreach(var emit in emitters)
+                    currentParticle = emit.GetClickedParticle();
+
                 if(currentParticle == null)
                     return;
                 //открытие режима корректирования частицы
@@ -275,7 +302,8 @@ namespace SystemParticles
 
 		private void _btnClearGraviton_Click(object sender, EventArgs e)
 		{
-            emitter.impactPoints.Clear();
+            foreach(var emit in emitters)
+                emit.impactPoints.Clear();
 		}
 
 		private void _picFromColor_Click(object sender, EventArgs e)
@@ -307,11 +335,12 @@ namespace SystemParticles
 		{
             if(start || previous)
                 return;
-            foreach(var emit in emitters)
-			{
-                using(var g = Graphics.FromImage(picDisplay.Image))
+
+            using(var g = Graphics.FromImage(picDisplay.Image))
+            {
+                g.Clear(Color.Black);
+                foreach(var emit in emitters)
                 {
-                    g.Clear(Color.Black);
                     emit.Render(g);
                 }
             }
@@ -339,13 +368,17 @@ namespace SystemParticles
 
 		private void _btnAddEmitter_Click(object sender, EventArgs e)
 		{
-            /*if(((_cmbStandType.Text.Length != 0 ) && (!ValidateComboBox(_cmbStandType, typeStandEmitter)))
-                || (_txtEmitterX.Text.Length == 0) || (_txtEmitterY.Text.Length == 0)
+            if((_txtGravitationX.Text.Length == 0) || (_txtGravitationY.Text.Length == 0)
+                || (_txtSpreading.Text.Length == 0) || (_txtDirection.Text.Length == 0)
                 || (_txtCountParticle.Text.Length == 0))
 			{
-                MessageBox.Show("Ошибка: не корректное заполнение полей для добавления эммитера!");
+                MessageBox.Show("Ошибка: не корректное заполнение полей для добавления эмиттера!");
                 return;
-			}*/
+			}
+
+            float grX = float.Parse(_txtGravitationX.Text), grY = float.Parse(_txtGravitationY.Text);
+            int sp = int.Parse(_txtSpreading.Text), dir = int.Parse(_txtDirection.Text);
+            int count = int.Parse(_txtCountParticle.Text);
 
             if(ValidateComboBox(_cmbStandType, typeStandEmitter))
 			{
@@ -355,81 +388,96 @@ namespace SystemParticles
                     {
                         Width = picDisplay.Width,
                         Height = picDisplay.Height,
-                        Direction = 0,
-                        Spreading = 10,
+                        Direction = dir,
+                        Spreading = sp,
                         SpeedMin = 10,
                         SpeedMax = 10,
-                        GravitationY = 0.25f,
+                        GravitationY = grY,
+                        GravitationX = grX,
                         ColorFrom = _picFromColor.BackColor,
                         ColorTo = Color.FromArgb(0, _picToColor.BackColor),
                         ParticlesPerTick = 10,
+                        ParticlesCount = count,
                         X = picDisplay.Width / 2,
                         Y = picDisplay.Height / 2,
                     });
                 }else if(_cmbStandType.Text.Equals(typeStandEmitter[1]))
-				{
+                {
                     emitters.Add(new LeftEmitter
                     {
                         Width = picDisplay.Width,
                         Height = picDisplay.Height,
-                        Direction = 0,
-                        Spreading = 10,
+                        Direction = dir,
+                        Spreading = sp,
                         SpeedMin = 10,
                         SpeedMax = 10,
-                        GravitationX = 0.25f,
+                        GravitationY = grY,
+                        GravitationX = grX,
                         ColorFrom = _picFromColor.BackColor,
                         ColorTo = Color.FromArgb(0, _picToColor.BackColor),
                         ParticlesPerTick = 10,
-                        X = picDisplay.Width / 2,
-                        Y = picDisplay.Height / 2,
-                    });
-                }else if(_cmbStandType.Text.Equals(typeStandEmitter[2]))
-				{
-                    emitters.Add(new BottomEmitter
-                    {
-                        Width = picDisplay.Width,
-                        Height = picDisplay.Height,
-                        Direction = 0,
-                        Spreading = 10,
-                        SpeedMin = 10,
-                        SpeedMax = 10,
-                        GravitationY = -0.25f,
-                        ColorFrom = _picFromColor.BackColor,
-                        ColorTo = Color.FromArgb(0, _picToColor.BackColor),
-                        ParticlesPerTick = 10,
-                        X = picDisplay.Width / 2,
-                        Y = picDisplay.Height / 2,
-                    });
-                }else if(_cmbStandType.Text.Equals(typeStandEmitter[3]))
-				{
-                    emitters.Add(new RightEmitter
-                    {
-                        Width = picDisplay.Width,
-                        Height = picDisplay.Height,
-                        Direction = 0,
-                        Spreading = 10,
-                        SpeedMin = 10,
-                        SpeedMax = 10,
-                        GravitationX = -0.25f,
-                        ColorFrom = _picFromColor.BackColor,
-                        ColorTo = Color.FromArgb(0, _picToColor.BackColor),
-                        ParticlesPerTick = 10,
+                        ParticlesCount = count,
                         X = picDisplay.Width / 2,
                         Y = picDisplay.Height / 2,
                     });
                 }
-
-                return;
+                else if(_cmbStandType.Text.Equals(typeStandEmitter[2]))
+                {
+                    emitters.Add(new BottomEmitter
+                    {
+                        Width = picDisplay.Width,
+                        Height = picDisplay.Height,
+                        Direction = dir,
+                        Spreading = sp,
+                        SpeedMin = 10,
+                        SpeedMax = 10,
+                        GravitationY = grY,
+                        GravitationX = grX,
+                        ColorFrom = _picFromColor.BackColor,
+                        ColorTo = Color.FromArgb(0, _picToColor.BackColor),
+                        ParticlesPerTick = 10,
+                        ParticlesCount = count,
+                        X = picDisplay.Width / 2,
+                        Y = picDisplay.Height / 2,
+                    });
+                }
+                else if(_cmbStandType.Text.Equals(typeStandEmitter[3]))
+                {
+                    emitters.Add(new RightEmitter
+                    {
+                        Width = picDisplay.Width,
+                        Height = picDisplay.Height,
+                        Direction = dir,
+                        Spreading = sp,
+                        SpeedMin = 10,
+                        SpeedMax = 10,
+                        GravitationY = grY,
+                        GravitationX = grX,
+                        ColorFrom = _picFromColor.BackColor,
+                        ColorTo = Color.FromArgb(0, _picToColor.BackColor),
+                        ParticlesPerTick = 10,
+                        ParticlesCount = count,
+                        X = picDisplay.Width / 2,
+                        Y = picDisplay.Height / 2,
+                    });
+                }
 			}
+			else
+			{
+                emitters.Add(new Emitter
+                {
+                    ColorFrom = _picFromColor.BackColor,
+                    ColorTo = Color.FromArgb(0, _picToColor.BackColor),
+                    X = int.Parse(_txtEmitterX.Text),
+                    Y = int.Parse(_txtEmitterY.Text),
+                    ParticlesCount = int.Parse(_txtCountParticle.Text)
+                });
+            }
 
-            emitters.Add(new Emitter{
-                ColorFrom = _picFromColor.BackColor,
-                ColorTo = Color.FromArgb(0, _picToColor.BackColor),
-                X = int.Parse(_txtEmitterX.Text),
-                Y = int.Parse(_txtEmitterY.Text),
-                ParticlesCount = int.Parse(_txtCountParticle.Text)
-			});
-		}
+            if(emitters.Count >= 2) //наследование точек притяжения/отторжения с предыдущего эмиттера
+                foreach(var point in emitters[emitters.Count - 2].impactPoints)
+                    emitters[emitters.Count - 1].impactPoints.Add(point);
+        }
 
 		private void _cmbStandType_TextChanged(object sender, EventArgs e)
 		{
@@ -440,9 +488,91 @@ namespace SystemParticles
             _txtEmitterY.Text = (picDisplay.Height / 2).ToString();
             if(_cmbStandType.Text.Equals(typeStandEmitter[0]))
 			{
-                _txtEmitterX.Text = "";
-                _txtEmitterY.Text = "";
-			}
+                _txtGravitationX.Text = "0";
+                _txtGravitationY.Text = "0,25";
+			}else if(_cmbStandType.Text.Equals(typeStandEmitter[1]))
+			{
+                _txtGravitationX.Text = "0,25";
+                _txtGravitationY.Text = "0";
+            }
+            else if(_cmbStandType.Text.Equals(typeStandEmitter[2]))
+            {
+                _txtGravitationX.Text = "0";
+                _txtGravitationY.Text = "-0,25";
+            }
+            if(_cmbStandType.Text.Equals(typeStandEmitter[3]))
+            {
+                _txtGravitationX.Text = "-0,25";
+                _txtGravitationY.Text = "0";
+            }
+            _txtCountParticle.Text = (100).ToString();
+            _txtDirection.Text = "0";
+            _txtSpreading.Text = "360";
+        }
+
+		private void _btnDeleteAllEmitter_Click(object sender, EventArgs e)
+		{
+            emitters.Clear();
 		}
+
+		private void _txtGravitationX_KeyPress(object sender, KeyPressEventArgs e)
+		{
+            char number = e.KeyChar;
+            if((!Char.IsDigit(number)) && (number != 8))
+            {
+                e.Handled = true;
+            }
+
+            if(((number == ',') || (number == '-')) && (_txtGravitationX.Text.IndexOf(number) < 0)
+                && (_txtGravitationX.Text.Length > 0))
+            {
+                e.Handled = false;
+            }
+        }
+
+		private void _txtGravitationY_KeyPress(object sender, KeyPressEventArgs e)
+		{
+            char number = e.KeyChar;
+            if((!Char.IsDigit(number)) && (number != 8))
+            {
+                e.Handled = true;
+            }
+
+            if(((number == ',') || (number == '-')) && (_txtGravitationY.Text.IndexOf(number) < 0)
+                && (_txtGravitationY.Text.Length > 0))
+			{
+                e.Handled = false;
+			}
+        }
+
+		private void _txtDirection_KeyPress(object sender, KeyPressEventArgs e)
+		{
+            char number = e.KeyChar;
+            if((!Char.IsDigit(number)) && (number != 8))
+            {
+                e.Handled = true;
+            }
+
+            if((number == ',') && (_txtDirection.Text.IndexOf(number) < 0)
+                && (_txtDirection.Text.Length > 0))
+            {
+                e.Handled = false;
+            }
+        }
+
+		private void _txtSpreading_KeyPress(object sender, KeyPressEventArgs e)
+		{
+            char number = e.KeyChar;
+            if((!Char.IsDigit(number)) && (number != 8))
+            {
+                e.Handled = true;
+            }
+
+            if((number == ',') && (_txtSpreading.Text.IndexOf(number) < 0)
+                && (_txtSpreading.Text.Length > 0))
+            {
+                e.Handled = false;
+            }
+        }
 	}
 }

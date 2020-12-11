@@ -81,7 +81,7 @@ namespace SystemParticles
 			for(int i = 0; i < particles.Count; i++)
 			{
 				particles[i].Life -= 1;
-				if(particles[i].Life < LifeMin) //если кол-во жизней у частицы < LifeMin
+				/*if(particles[i].Life < LifeMin) //если кол-во жизней у частицы < LifeMin
 				{
 					if(particlesToCreate > 0) //а кол-во создаваемых частиц больше 0
 					{
@@ -89,23 +89,21 @@ namespace SystemParticles
 						ResetParticle(particles[i]); //и ставим частицу на стандартное место
 						beginStateParticle[i] = (Particle)particles[i].Clone();
 					}
-				}
-				else
+				}*/
+				particles[i].X += particles[i].SpeedX;
+				particles[i].Y += particles[i].SpeedY;
+
+				foreach(var point in impactPoints)
 				{
-					particles[i].X += particles[i].SpeedX;
-					particles[i].Y += particles[i].SpeedY;
-
-					foreach(var point in impactPoints)
-					{
-						point.ImpactParticle(particles[i]);
-					}
-
-					particles[i].SpeedX += GravitationX;
-					particles[i].SpeedY += GravitationY;
+					point.ImpactParticle(particles[i]);
 				}
+
+				particles[i].SpeedX += GravitationX;
+				particles[i].SpeedY += GravitationY;
 			}
 
-			while(particlesToCreate >= 1) //первоначальная инициализация всех данных
+			//цикл начальной инициализации всех данных
+			while((particlesToCreate >= 1) && (particles.Count < ParticlesCount)) 
 			{
 				particlesToCreate -= 1;
 				var particle = CreateParticle();
@@ -152,7 +150,7 @@ namespace SystemParticles
 					particles[i].X -= particles[i].SpeedX;
 					particles[i].Y -= particles[i].SpeedY;
 
-					foreach(var point in impactPoints) //сделать обратное притяжению действие
+					foreach(var point in impactPoints) //обратное притяжению действие
 					{
 						point.AntiImpactParticle(particles[i]);
 					}
@@ -287,10 +285,9 @@ namespace SystemParticles
 			float gX = X - particle.X;
 			float gY = Y - particle.Y;
 
-			double r = Math.Sqrt(gX * gX + gY * gY); // считаем расстояние от центра точки до центра частицы
-			if(r + particle.Radius < Power / 2) // если частица оказалось внутри окружности
+			double r = Math.Sqrt(gX * gX + gY * gY);
+			if(r + particle.Radius < Power / 2)
 			{
-				// то притягиваем ее
 				float r2 = (float)Math.Max(100, gX * gX + gY * gY);
 				particle.SpeedX += gX * Power / r2;
 				particle.SpeedY += gY * Power / r2;
@@ -301,10 +298,14 @@ namespace SystemParticles
 		{
 			float gX = X - particle.X;
 			float gY = Y - particle.Y;
-			float r2 = (float)Math.Max(100, gX * gX + gY * gY);
 
-			particle.SpeedX -= gX * Power / r2;
-			particle.SpeedY -= gY * Power / r2;
+			double r = Math.Sqrt(gX * gX + gY * gY);
+			if(r + particle.Radius < Power / 2)
+			{
+				float r2 = (float)Math.Max(100, gX * gX + gY * gY);
+				particle.SpeedX -= gX * Power / r2;
+				particle.SpeedY -= gY * Power / r2;
+			}
 		}
 
 		public override void Render(Graphics g)
@@ -327,10 +328,9 @@ namespace SystemParticles
 			float gX = X - particle.X;
 			float gY = Y - particle.Y;
 
-			double r = Math.Sqrt(gX * gX + gY * gY); // считаем расстояние от центра точки до центра частицы
-			if(r + particle.Radius < Power / 2) // если частица оказалось внутри окружности
+			double r = Math.Sqrt(gX * gX + gY * gY);
+			if(r + particle.Radius < Power / 2)
 			{
-				// то притягиваем ее
 				float r2 = (float)Math.Max(100, gX * gX + gY * gY);
 				particle.SpeedX += gX * Power / r2;
 				particle.SpeedY += gY * Power / r2;
@@ -341,10 +341,14 @@ namespace SystemParticles
 		{
 			float gX = X - particle.X;
 			float gY = Y - particle.Y;
-			float r2 = (float)Math.Max(100, gX * gX + gY * gY);
 
-			particle.SpeedX -= gX * Power / r2;
-			particle.SpeedY -= gY * Power / r2;
+			double r = Math.Sqrt(gX * gX + gY * gY);
+			if(r + particle.Radius < Power / 2)
+			{
+				float r2 = (float)Math.Max(100, gX * gX + gY * gY);
+				particle.SpeedX -= gX * Power / r2;
+				particle.SpeedY -= gY * Power / r2;
+			}
 		}
 
 		public override void Render(Graphics g)
