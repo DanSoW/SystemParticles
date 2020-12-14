@@ -18,17 +18,19 @@ namespace SystemParticles
 		public int SpeedMax = 10; // начальная максимальная скорость движения частицы
 		public int RadiusMin = 6; // минимальный радиус частицы
 		public int RadiusMax = 20; // максимальный радиус частицы
-		public int LifeMin = 20; // минимальное время жизни частицы
-		public int LifeMax = 200; // максимальное время жизни частицы
-		public int ParticlesPerTick = 1; // добавил новое поле
+		public int LifeMin = 10; // минимальное количество жизни частицы
+		public int LifeMax = 200; // максимальное количество жизни частицы
+		public int ParticlesPerTick = 1; // кол-во частиц, создаваемых при каждом тике
 
 		public Color ColorFrom = Color.White; // начальный цвет частицы
 		public Color ColorTo = Color.FromArgb(0, Color.Black); // конечный цвет частиц
 
-		public List<Particle> particles = new List<Particle>();
-		public List<Particle> beginStateParticle = new List<Particle>(); //массив содержащий начальное состояние всех частиц
+		public List<Particle> particles = new List<Particle>(); //структура данных List, содержащая все частицы эмиттера
+		public List<Particle> beginStateParticle = new List<Particle>(); //структура данных List
+		//содержащая начальное состояние всех частиц (историю при их создании)
+		public List<IImpactPoint> impactPoints = new List<IImpactPoint>(); //структура данных List,
+		//содержащая точки притяжения/отторжения
 
-		public List<IImpactPoint> impactPoints = new List<IImpactPoint>();
 		public float GravitationX = 0;
 		public float GravitationY = 0;
 
@@ -37,6 +39,8 @@ namespace SystemParticles
 
 		public int Height;
 		public int Width;
+
+		public int ParticlesCount = 100; //кол-во частиц, которое будет создано эмиттером
 
 		public virtual Particle CreateParticle()
 		{
@@ -54,14 +58,14 @@ namespace SystemParticles
 			return particle;
 		}
 
-		public int ParticlesCount = 100;
 		public virtual void ResetParticle(Particle particle)
 		{
 			particle.Life = Particle.rand.Next(LifeMin, LifeMax);
 
 			particle.X = X;
 			particle.Y = Y;
-
+			particle.Height = Height;
+			particle.Width = Width;
 			var direction = Direction
 				+ (double)Particle.rand.Next(Spreading)
 				- Spreading / 2;
@@ -76,20 +80,12 @@ namespace SystemParticles
 
 		public void UpdateState()
 		{
-			int particlesToCreate = ParticlesPerTick; //сколько нужно создать частиц
+			int particlesToCreate = ParticlesPerTick; //сколько нужно создать частиц за 1 тик
 
 			for(int i = 0; i < particles.Count; i++)
 			{
+				//частицы живут либо до конца работы программы, либо до возвращения их назад (обратное движение)
 				particles[i].Life -= 1;
-				/*if(particles[i].Life < LifeMin) //если кол-во жизней у частицы < LifeMin
-				{
-					if(particlesToCreate > 0) //а кол-во создаваемых частиц больше 0
-					{
-						particlesToCreate -= 1;  //то вычитаем из кол-ва создаваемых частиц 1
-						ResetParticle(particles[i]); //и ставим частицу на стандартное место
-						beginStateParticle[i] = (Particle)particles[i].Clone();
-					}
-				}*/
 				particles[i].X += particles[i].SpeedX;
 				particles[i].Y += particles[i].SpeedY;
 
@@ -117,6 +113,7 @@ namespace SystemParticles
 		{
 			foreach(var particle in particles)
 			{
+				//каждой частице передаём позицию указателя мыши на холстке pictureDisplay
 				particle.MousePositionX = MousePositionX;
 				particle.MousePositionY = MousePositionY;
 				particle.Draw(g);
@@ -128,7 +125,7 @@ namespace SystemParticles
 			}
 		}
 
-		//возврат к обратному состоянию частиц частиц
+		//возврат к обратному состоянию всех частиц
 		public void UpdateStatePrevious()
 		{
 			if(particles.Count == 0)
@@ -140,6 +137,8 @@ namespace SystemParticles
 			for(int i = 0; i < particles.Count; i++)
 			{
 				particles[i].Life += 1;
+				//перемещение будет происходить до тех пор, пока динамически изменяемые величины каждой частицы
+				//не окажутся равными начальным (относительно истории их создания) значениям
 				if((particles[i].X == beginStateParticle[i].X) && (particles[i].Y == beginStateParticle[i].Y)
 					|| (particles[i].Life > beginStateParticle[i].Life))
 				{
@@ -147,14 +146,16 @@ namespace SystemParticles
 				}
 				else if (particles[i].Life < beginStateParticle[i].Life)
 				{
+					//обратное действие движению
 					particles[i].X -= particles[i].SpeedX;
 					particles[i].Y -= particles[i].SpeedY;
 
-					foreach(var point in impactPoints) //обратное притяжению действие
+					foreach(var point in impactPoints)
 					{
-						point.AntiImpactParticle(particles[i]);
+						point.AntiImpactParticle(particles[i]); //обратное притяжению действие
 					}
 
+					//обратное действие притяжению
 					particles[i].SpeedX -= GravitationX;
 					particles[i].SpeedY -= GravitationY;
 				}
@@ -167,6 +168,7 @@ namespace SystemParticles
 				beginStateParticle[index] = part;
 			}
 
+			//удаление частиц
 			while(particles.IndexOf(part) >= 0)
 				particles.Remove(part);
 			while(beginStateParticle.IndexOf(part) >= 0)
@@ -190,7 +192,10 @@ namespace SystemParticles
 		}
 	}
 
-	public class TopEmitter : Emitter
+	/// <summary>
+	/// Эмиттер, генерирующий частицы с верхней части холста
+	/// </summary>
+	public class TopEmitter : Emitter 
 	{
 		public override void ResetParticle(Particle particle)
 		{
@@ -204,6 +209,9 @@ namespace SystemParticles
 		}
 	}
 
+	/// <summary>
+	/// Эмиттер, генерирующий частицы с левой части холста
+	/// </summary>
 	public class LeftEmitter : Emitter
 	{
 		public override void ResetParticle(Particle particle)
@@ -218,6 +226,9 @@ namespace SystemParticles
 		}
 	}
 
+	/// <summary>
+	/// Эмиттер, генерирующий частицы с правой части холста
+	/// </summary>
 	public class RightEmitter : Emitter
 	{
 		public override void ResetParticle(Particle particle)
@@ -232,6 +243,9 @@ namespace SystemParticles
 		}
 	}
 
+	/// <summary>
+	/// Эмиттер, генерирующий частицы с нижней части холста
+	/// </summary>
 	public class BottomEmitter : Emitter
 	{
 		public override void ResetParticle(Particle particle)
@@ -266,19 +280,12 @@ namespace SystemParticles
 		}
 	}
 
+	/// <summary>
+	/// Класс точек притяжения
+	/// </summary>
 	public class GravityPoint : IImpactPoint
 	{
 		public int Power = 100; 
-
-		/*public override void ImpactParticle(Particle particle)
-		{
-			float gX = X - particle.X;
-			float gY = Y - particle.Y;
-			float r2 = (float)Math.Max(100, gX * gX + gY * gY);
-
-			particle.SpeedX += gX * Power / r2;
-			particle.SpeedY += gY * Power / r2;
-		}*/
 
 		public override void ImpactParticle(Particle particle)
 		{
@@ -320,6 +327,9 @@ namespace SystemParticles
 		}
 	}
 
+	/// <summary>
+	/// Класс точек отторжения
+	/// </summary>
 	public class AntiGravityPoint : IImpactPoint
 	{
 		public int Power = 100;

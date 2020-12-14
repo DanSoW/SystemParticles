@@ -8,25 +8,34 @@ using System.Windows.Forms;
 
 namespace SystemParticles
 {
-    public class Particle : ICloneable
+    /// <summary>
+    /// Класс частицы
+    /// </summary>
+    public class Particle : ICloneable //подключение ICloneable для возможности создания клонов объекта (его копий)
     {
+        //количественное значение радиуса и его ограничение
         public int Radius;
         public int RadiusMin = 2;
         public int RadiusMax = 10;
 
+        //координаты центра частицы
         public float X; 
         public float Y; 
 
+        //скорость
         public float SpeedX; 
         public float SpeedY; 
 
+        //количество жизней и её ограничение
         public float Life;
         public float LifeMin = 0;
         public float LifeMax = 100;
 
-        //screen
+        //координаты экрана
         public int MousePositionX;
         public int MousePositionY;
+
+        //параметры экрана
         public int Height;
         public int Width;
 
@@ -68,12 +77,22 @@ namespace SystemParticles
             b.Dispose();
         }
 
-        public bool MouseInParticle(float mouseX, float mouseY) // находится ли указатель мыши в частице
+        /// <summary>
+        /// Метод определяющий находится ли указатель мыши в области частицы
+        /// </summary>
+        /// <param name="mouseX">Координата X мыши на холсте PictureBox</param>
+        /// <param name="mouseY">Координата Y мыши на холсте PictureBox</param>
+        /// <returns>true - если указатель мыши находится в области частицы, и false - в другом случае</returns>
+        public bool MouseInParticle(float mouseX, float mouseY)
         {
             return (MousePositionX <= X + Radius) && (MousePositionX >= X - Radius)
                     && (MousePositionY <= Y + Radius) && (MousePositionY >= Y - Radius);
         }
 
+        /// <summary>
+        /// Метод создающий копию текущего объекта частицы
+        /// </summary>
+        /// <returns>Новый объект, содержащий данные текущего объекта</returns>
         public object Clone()
         {
             return new Particle(X, Y, Radius, Life, SpeedX, SpeedY);
@@ -85,14 +104,15 @@ namespace SystemParticles
         public Color FromColor;
         public Color ToColor;
 
-        public static Color MixColor(Color color1, Color color2, float k) //функция формирующая цвет
+        public static Color MixColor(Color color1, Color color2, float k) //ункция формирующая цвет
         {
             int alpha = (int)(color2.A * k + color1.A * (1 - k)),
                 red = (int)(color2.R * k + color1.R * (1 - k)),
                 green = (int)(color2.G * k + color1.G * (1 - k)),
                 blue = (int)(color2.B * k + color1.B * (1 - k));
 
-            //с помощью тернарных операторов было сделано ограничение значений для крайних точек
+            //с помощью тернарных операторов сделано ограничение значений, для
+            //автоматической обработки ситуаций "крайних" границ
             alpha = (alpha < 0) ? 0 : (alpha > 255) ? 255 : alpha;
             red = (red < 0) ? 0 : (red > 255) ? 255 : red;
             green = (green < 0) ? 0 : (green > 255) ? 255 : green;
@@ -112,6 +132,9 @@ namespace SystemParticles
         }
     }
 
+    /// <summary>
+    /// Класс частиц, информирующих пользователя о своём состоянии
+    /// </summary>
     public class ParticleInformation : ParticleColorful
 	{
 		public override void Draw(Graphics g) //рисование цветной частицы с информацией
@@ -122,10 +145,11 @@ namespace SystemParticles
             g.FillEllipse(b, X - Radius, Y - Radius, Radius * 2, Radius * 2);
 
             float coordX = X + SpeedX, coordY = Y + SpeedY;
-            if(Life >= LifeMin)
+            if(Life >= LifeMin) //рисование частиц с информацией доступно только если количество жизни у частицы
+                //больше её минимального ограничителя
             {
-                Pen pen = new Pen(Color.Yellow);
-                g.DrawLine(pen, X, Y, coordX, coordY);
+                Pen pen = new Pen(Color.Yellow);        //создание кисти
+                g.DrawLine(pen, X, Y, coordX, coordY);  //создание линии (вектор направления частицы)
 
                 if((MousePositionX <= X + Radius) && (MousePositionX >= X - Radius)
                     && (MousePositionY <= Y + Radius) && (MousePositionY >= Y - Radius))
@@ -140,35 +164,14 @@ namespace SystemParticles
 
                     var size = g.MeasureString(text, font);
 
+                    //вычисление позиции четырёхугольника с информацией на холсте
                     float x = MousePositionX + size.Width / 4,
                         y = MousePositionY + size.Height / 4;
 
-                    if((x + size.Width) > Width)
-                    {
-                        if((y - size.Height / 4 - size.Height) < 0)
-                        {
-                            x -= (size.Width / 4 + size.Width);
-                            y += size.Height / 4;
-                        }
-                        else
-                        {
-                            x -= (size.Width / 4 + size.Width);
-                            y -= (size.Height / 4 + size.Height);
-                        }
-                    }
-                    else if((y + size.Height) > Height)
-                    {
-                        if((x - size.Width / 4 - size.Width) < 0)
-                        {
-                            x += size.Width / 4;
-                            y -= (size.Height / 4 + size.Height);
-                        }
-                        else
-                        {
-                            x -= (size.Width / 4 + size.Width);
-                            y -= (size.Height / 4 + size.Height);
-                        }
-                    }
+                    while((x + size.Width) > Width)
+                        x--;
+                    while((y + size.Height) > Height)
+                        y--;
 
                     g.FillRectangle(
                         new SolidBrush(Color.OrangeRed),

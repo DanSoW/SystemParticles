@@ -23,7 +23,7 @@ namespace SystemParticles
 
         int MouseClickX = 0;
         int MouseClickY = 0;
-        
+
         public Window()
 		{
 			InitializeComponent();
@@ -37,6 +37,7 @@ namespace SystemParticles
             this.emitter = new TopEmitter
             {
                 Width = picDisplay.Width,
+                Height = picDisplay.Height,
                 Direction = 0,
                 Spreading = 10,
                 SpeedMin = 10,
@@ -266,7 +267,7 @@ namespace SystemParticles
                 }
             }else if(e.Button == MouseButtons.Left)
 			{
-                if(start == true)
+                if((start == true) || (previous == true))
                 {
                     MessageBox.Show("Ошибка: нельзя захватить частицу при движении частиц");
                     return;
@@ -329,6 +330,8 @@ namespace SystemParticles
             {
                 e.Handled = true;
             }
+
+            _txtParticlePerTick.Text = "0";
         }
 
 		private void timer2_Tick_1(object sender, EventArgs e)
@@ -370,7 +373,7 @@ namespace SystemParticles
 		{
             if((_txtGravitationX.Text.Length == 0) || (_txtGravitationY.Text.Length == 0)
                 || (_txtSpreading.Text.Length == 0) || (_txtDirection.Text.Length == 0)
-                || (_txtCountParticle.Text.Length == 0))
+                || (_txtCountParticle.Text.Length == 0) || (_txtParticlePerTick.Text.Length == 0))
 			{
                 MessageBox.Show("Ошибка: не корректное заполнение полей для добавления эмиттера!");
                 return;
@@ -378,7 +381,8 @@ namespace SystemParticles
 
             float grX = float.Parse(_txtGravitationX.Text), grY = float.Parse(_txtGravitationY.Text);
             int sp = int.Parse(_txtSpreading.Text), dir = int.Parse(_txtDirection.Text);
-            int count = int.Parse(_txtCountParticle.Text);
+            int count = int.Parse(_txtCountParticle.Text), tick = int.Parse(_txtParticlePerTick.Text);
+            int coordX = int.Parse(_txtEmitterX.Text), coordY = int.Parse(_txtEmitterY.Text);
 
             if(ValidateComboBox(_cmbStandType, typeStandEmitter))
 			{
@@ -396,7 +400,7 @@ namespace SystemParticles
                         GravitationX = grX,
                         ColorFrom = _picFromColor.BackColor,
                         ColorTo = Color.FromArgb(0, _picToColor.BackColor),
-                        ParticlesPerTick = 10,
+                        ParticlesPerTick = tick,
                         ParticlesCount = count,
                         X = picDisplay.Width / 2,
                         Y = picDisplay.Height / 2,
@@ -415,7 +419,7 @@ namespace SystemParticles
                         GravitationX = grX,
                         ColorFrom = _picFromColor.BackColor,
                         ColorTo = Color.FromArgb(0, _picToColor.BackColor),
-                        ParticlesPerTick = 10,
+                        ParticlesPerTick = tick,
                         ParticlesCount = count,
                         X = picDisplay.Width / 2,
                         Y = picDisplay.Height / 2,
@@ -435,7 +439,7 @@ namespace SystemParticles
                         GravitationX = grX,
                         ColorFrom = _picFromColor.BackColor,
                         ColorTo = Color.FromArgb(0, _picToColor.BackColor),
-                        ParticlesPerTick = 10,
+                        ParticlesPerTick = tick,
                         ParticlesCount = count,
                         X = picDisplay.Width / 2,
                         Y = picDisplay.Height / 2,
@@ -455,7 +459,7 @@ namespace SystemParticles
                         GravitationX = grX,
                         ColorFrom = _picFromColor.BackColor,
                         ColorTo = Color.FromArgb(0, _picToColor.BackColor),
-                        ParticlesPerTick = 10,
+                        ParticlesPerTick = tick,
                         ParticlesCount = count,
                         X = picDisplay.Width / 2,
                         Y = picDisplay.Height / 2,
@@ -466,11 +470,20 @@ namespace SystemParticles
 			{
                 emitters.Add(new Emitter
                 {
+                    Width = picDisplay.Width,
+                    Height = picDisplay.Height,
+                    Direction = dir,
+                    Spreading = sp,
+                    SpeedMin = 10,
+                    SpeedMax = 10,
+                    GravitationY = grY,
+                    GravitationX = grX,
                     ColorFrom = _picFromColor.BackColor,
                     ColorTo = Color.FromArgb(0, _picToColor.BackColor),
-                    X = int.Parse(_txtEmitterX.Text),
-                    Y = int.Parse(_txtEmitterY.Text),
-                    ParticlesCount = int.Parse(_txtCountParticle.Text)
+                    ParticlesPerTick = tick,
+                    ParticlesCount = count,
+                    X = coordX,
+                    Y = coordY,
                 });
             }
 
@@ -508,6 +521,7 @@ namespace SystemParticles
             _txtCountParticle.Text = (100).ToString();
             _txtDirection.Text = "0";
             _txtSpreading.Text = "360";
+            _txtParticlePerTick.Text = "1";
         }
 
 		private void _btnDeleteAllEmitter_Click(object sender, EventArgs e)
@@ -552,12 +566,6 @@ namespace SystemParticles
             {
                 e.Handled = true;
             }
-
-            if((number == ',') && (_txtDirection.Text.IndexOf(number) < 0)
-                && (_txtDirection.Text.Length > 0))
-            {
-                e.Handled = false;
-            }
         }
 
 		private void _txtSpreading_KeyPress(object sender, KeyPressEventArgs e)
@@ -567,12 +575,31 @@ namespace SystemParticles
             {
                 e.Handled = true;
             }
+        }
 
-            if((number == ',') && (_txtSpreading.Text.IndexOf(number) < 0)
-                && (_txtSpreading.Text.Length > 0))
+		private void _txtParticlePerTick_KeyPress(object sender, KeyPressEventArgs e)
+		{
+            if(_txtCountParticle.Text.Length == 0)
+			{
+                e.Handled = true;
+                return;
+			}
+
+            char number = e.KeyChar;
+            if((!Char.IsDigit(number)) && (number != 8))
             {
-                e.Handled = false;
+                e.Handled = true;
             }
+
+            if(number == 8)
+			{
+                return;
+			}
+
+            if(int.Parse(_txtParticlePerTick.Text + number) > int.Parse(_txtCountParticle.Text))
+			{
+                e.Handled = true;
+			}
         }
 	}
 }

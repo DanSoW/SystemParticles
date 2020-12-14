@@ -83,6 +83,8 @@
 			this._txtLabelDirection = new System.Windows.Forms.Label();
 			this._txtSpreading = new System.Windows.Forms.TextBox();
 			this._txtLabelSpreading = new System.Windows.Forms.Label();
+			this._txtParticlePerTick = new System.Windows.Forms.TextBox();
+			this._txtLabelPerTick = new System.Windows.Forms.Label();
 			((System.ComponentModel.ISupportInitialize)(this.picDisplay)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this._tbSpeedNext)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this._tbrRadiusParticle)).BeginInit();
@@ -472,15 +474,15 @@
 			this._txtLabelCount.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
 			this._txtLabelCount.Location = new System.Drawing.Point(809, 232);
 			this._txtLabelCount.Name = "_txtLabelCount";
-			this._txtLabelCount.Size = new System.Drawing.Size(122, 15);
+			this._txtLabelCount.Size = new System.Drawing.Size(61, 15);
 			this._txtLabelCount.TabIndex = 43;
-			this._txtLabelCount.Text = "Количество частиц:";
+			this._txtLabelCount.Text = "Частицы:";
 			// 
 			// _txtCountParticle
 			// 
-			this._txtCountParticle.Location = new System.Drawing.Point(940, 232);
+			this._txtCountParticle.Location = new System.Drawing.Point(876, 229);
 			this._txtCountParticle.Name = "_txtCountParticle";
-			this._txtCountParticle.Size = new System.Drawing.Size(48, 20);
+			this._txtCountParticle.Size = new System.Drawing.Size(37, 20);
 			this._txtCountParticle.TabIndex = 44;
 			this._txtCountParticle.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this._txtCountParticle_KeyPress);
 			// 
@@ -580,11 +582,30 @@
 			this._txtLabelSpreading.TabIndex = 53;
 			this._txtLabelSpreading.Text = "Разброс частиц:";
 			// 
+			// _txtParticlePerTick
+			// 
+			this._txtParticlePerTick.Location = new System.Drawing.Point(975, 229);
+			this._txtParticlePerTick.Name = "_txtParticlePerTick";
+			this._txtParticlePerTick.Size = new System.Drawing.Size(37, 20);
+			this._txtParticlePerTick.TabIndex = 55;
+			this._txtParticlePerTick.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this._txtParticlePerTick_KeyPress);
+			// 
+			// _txtLabelPerTick
+			// 
+			this._txtLabelPerTick.AutoSize = true;
+			this._txtLabelPerTick.Location = new System.Drawing.Point(926, 232);
+			this._txtLabelPerTick.Name = "_txtLabelPerTick";
+			this._txtLabelPerTick.Size = new System.Drawing.Size(43, 13);
+			this._txtLabelPerTick.TabIndex = 56;
+			this._txtLabelPerTick.Text = "За тик:";
+			// 
 			// Window
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(1045, 490);
+			this.Controls.Add(this._txtLabelPerTick);
+			this.Controls.Add(this._txtParticlePerTick);
 			this.Controls.Add(this._txtSpreading);
 			this.Controls.Add(this._txtLabelSpreading);
 			this.Controls.Add(this._txtDirection);
@@ -706,6 +727,8 @@
 		private System.Windows.Forms.Label _txtLabelDirection;
 		private System.Windows.Forms.TextBox _txtSpreading;
 		private System.Windows.Forms.Label _txtLabelSpreading;
+		private System.Windows.Forms.TextBox _txtParticlePerTick;
+		private System.Windows.Forms.Label _txtLabelPerTick;
 	}
 }
 
