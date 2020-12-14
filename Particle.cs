@@ -13,6 +13,10 @@ namespace SystemParticles
     /// </summary>
     public class Particle : ICloneable //подключение ICloneable для возможности создания клонов объекта (его копий)
     {
+        public bool ActiveRadar = false; //находится ли частица под действием радара
+        public Color FromColor;
+        public Color ToColor;
+
         //количественное значение радиуса и его ограничение
         public int Radius;
         public int RadiusMin = 2;
@@ -63,6 +67,11 @@ namespace SystemParticles
             Life = LifeMin + rand.Next((int)LifeMax);
         }
 
+        public virtual void DrawRadar(Graphics g) //функция рисования используемая радаром
+        {
+            Draw(g);
+        }
+
         public virtual void Draw(Graphics g)
         {
             float k = Math.Min(1f, Life / 100);
@@ -101,9 +110,6 @@ namespace SystemParticles
 
     public class ParticleColorful : Particle
     {
-        public Color FromColor;
-        public Color ToColor;
-
         public static Color MixColor(Color color1, Color color2, float k) //ункция формирующая цвет
         {
             int alpha = (int)(color2.A * k + color1.A * (1 - k)),
@@ -137,6 +143,14 @@ namespace SystemParticles
     /// </summary>
     public class ParticleInformation : ParticleColorful
 	{
+		public override void DrawRadar(Graphics g)
+		{
+            float k = Math.Min(1f, Life / 100);
+            var color = MixColor(ToColor, FromColor, k);
+            var b = new SolidBrush(color);
+            g.FillEllipse(b, X - Radius, Y - Radius, Radius * 2, Radius * 2);
+        }
+
 		public override void Draw(Graphics g) //рисование цветной частицы с информацией
 		{
             float k = Math.Min(1f, Life / 100);

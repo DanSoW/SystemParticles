@@ -16,24 +16,23 @@ namespace SystemParticles
         Emitter emitter;        
         bool start = false;                 //началось ли движение частиц вперёд или нет
         bool previous = false;              //началось ли движение частиц назад или нет
+        bool radar = false;                 //режим радара
         Particle currentParticle = null;    //изменяемая частица
 
         List<string> typeGraviton = null;
         List<string> typeStandEmitter = null;
+        ParticleRadar radarParticle = null; //объект радара
 
         int MouseClickX = 0;
         int MouseClickY = 0;
+        int MousePositionX = -100;
+        int MousePositionY = -100;
 
         public Window()
 		{
 			InitializeComponent();
 
-            /*emitter = new TopEmitter
-            {
-                Width = picDisplay.Width,
-                GravitationY = 0.25f
-            };*/
-
+            //первоначальная инициализация
             this.emitter = new TopEmitter
             {
                 Width = picDisplay.Width,
@@ -60,31 +59,7 @@ namespace SystemParticles
             _tbrSpeedYParticle.Maximum = 100;
             _tbrSpeedYParticle.Minimum = -100;
 
-            // привязка изображения
             picDisplay.Image = new Bitmap(picDisplay.Width, picDisplay.Height);
-            /*
-            // гравитон
-            emitter.impactPoints.Add(new GravityPoint
-            {
-                X = (float)(picDisplay.Width * 0.25),
-                Y = picDisplay.Height / 2
-            });
-
-            // в центре антигравитон
-            emitter.impactPoints.Add(new AntiGravityPoint
-            {
-                X = picDisplay.Width / 2,
-                Y = picDisplay.Height / 2
-            });*/
-
-            // снова гравитон
-            /*emitter.impactPoints.Add(new GravityPoint
-            {
-                X = (float)(picDisplay.Width * 0.75),
-                Y = picDisplay.Height / 2
-            });
-            */
-            //interface initializing
 
             typeGraviton = new List<string> { "гравитон", "антигравитон" };
             typeStandEmitter = new List<string> { "top", "left", "bottom", "right" };
@@ -98,6 +73,13 @@ namespace SystemParticles
 
             _cdToColor.FullOpen = true;
             _picToColor.BackColor = _cdToColor.Color = Color.Black;
+
+            _txtStatusRadar.ForeColor = Color.Red;
+            _txtStatusRadar.Text = "Не активен";
+            radarParticle = new ParticleRadar{
+                color = Color.YellowGreen
+            };
+            pictureBox1.BackColor = Color.YellowGreen;
         }
 
         private void EmptyParticleInterface()
@@ -110,6 +92,7 @@ namespace SystemParticles
 
         private void timer1_Tick(object sender, EventArgs e)
         {
+            int counter = 0; //количество частиц из всех эммитеров, которые попали в область действия радара
             using(var g = Graphics.FromImage(picDisplay.Image))
             {
                 g.Clear(Color.Black);
@@ -118,22 +101,38 @@ namespace SystemParticles
                     if(start)
                         emit.UpdateState();
                     else if(previous)
-                        emit.UpdateStatePrevious();
+                        emit.UpdateStatePrevious(); //обратное движение частиц
 
                     emit.Render(g);
+                    counter += emit.CounterActiveRadar(); //подсчёт частиц, которые попали в область действия радара
+                }
+
+                if(counter > 0)
+                {   //рисование чисел в области радара (количество частиц попавших в его область действия)
+                    g.DrawString($"{counter}",
+                    new Font("Verdana", 12),
+                    new SolidBrush(Color.White),
+                    MousePositionX,
+                    MousePositionY + 15);
                 }
             }
- 
+
             picDisplay.Invalidate();
         }
 
-        private void picDisplay_MouseMove(object sender, MouseEventArgs e)
+        private void picDisplay_MouseMove(object sender, MouseEventArgs e) //обработка движений указателя мыши по холсту
         {
             foreach(var emit in emitters)
             {
-                emit.MousePositionX = e.X;
-                emit.MousePositionY = e.Y;
+                emit.MousePositionX = MousePositionX = e.X;
+                emit.MousePositionY = MousePositionY = e.Y;
             }
+
+			if(radar)
+			{
+                radarParticle.X = e.X;
+                radarParticle.Y = e.Y;
+			}
         }
 
 		private void button1_Click(object sender, EventArgs e)
@@ -156,15 +155,6 @@ namespace SystemParticles
             start = true;
             timer1_Tick(sender, e);
             start = false;
-
-            //log
-            string mess = "";
-            foreach(var i in emitters)
-			{
-                mess += i.particles.Count.ToString() + "\n";
-			}
-
-            MessageBox.Show(emitters.Count.ToString() + " - size \n" + mess);
 		}
 
 		private void _tbrRadiusParticle_Scroll(object sender, EventArgs e)
@@ -226,7 +216,7 @@ namespace SystemParticles
 		{
             return (lists.IndexOf(cmb.Text) >= 0);
 		}
-		private void picDisplay_MouseClick(object sender, MouseEventArgs e)
+		private void picDisplay_MouseClick(object sender, MouseEventArgs e) //обработка нажатий на клавишу мыши
 		{
             MouseClickX = e.X;
             MouseClickY = e.Y;
@@ -234,7 +224,10 @@ namespace SystemParticles
             _txtEmitterX.Text = MouseClickX.ToString();
             _txtEmitterY.Text = MouseClickY.ToString();
 
-            if(e.Button == MouseButtons.Right) //система создания точки
+            if(radar) //если включен режим радара прерываем обработку нажатия на клавишу мыши
+                return; 
+
+            if(e.Button == MouseButtons.Right) //система создания точки (при щелчке на левую кнопку мыши)
 			{
                 if((!ValidateComboBox(_cmbTypeGraviton, typeGraviton)) 
                     || (_txtInputPower.Text.Length == 0)){
@@ -242,6 +235,7 @@ namespace SystemParticles
                     return;
 				}
 
+                //добавление точек двух типов: гравитона и антигравитона
 				if(_cmbTypeGraviton.Text.Equals(typeGraviton[0]))
 				{
                     foreach(var emit in emitters)
@@ -265,7 +259,7 @@ namespace SystemParticles
                         });
                     }
                 }
-            }else if(e.Button == MouseButtons.Left)
+            }else if(e.Button == MouseButtons.Left) //обработка нажатия на правую кнопку мыши
 			{
                 if((start == true) || (previous == true))
                 {
@@ -274,7 +268,11 @@ namespace SystemParticles
                 }
 
                 foreach(var emit in emitters)
+				{
                     currentParticle = emit.GetClickedParticle();
+                    if(currentParticle != null)
+                        break;
+                }
 
                 if(currentParticle == null)
                     return;
@@ -292,7 +290,7 @@ namespace SystemParticles
             }
 		}
 
-		private void _txtInputPower_KeyPress(object sender, KeyPressEventArgs e)
+		private void _txtInputPower_KeyPress(object sender, KeyPressEventArgs e) //обработка нажатия на клавишу
 		{
             char number = e.KeyChar;
             if((!Char.IsDigit(number)) && (number != 8))
@@ -303,12 +301,18 @@ namespace SystemParticles
 
 		private void _btnClearGraviton_Click(object sender, EventArgs e)
 		{
+			if(radar)
+			{
+                MessageBox.Show("Ошибка: вы находитесь в режиме радара, выйдите из него чтобы продолжить настройку холста");
+                return;
+			}
             foreach(var emit in emitters)
                 emit.impactPoints.Clear();
 		}
 
 		private void _picFromColor_Click(object sender, EventArgs e)
 		{
+            //обработка выбора цвета
             if(_cdFromColor.ShowDialog() == DialogResult.Cancel)
                 return;
 
@@ -334,18 +338,26 @@ namespace SystemParticles
             _txtParticlePerTick.Text = "0";
         }
 
-		private void timer2_Tick_1(object sender, EventArgs e)
-		{
-            if(start || previous)
-                return;
-
+		private void timer2_Tick_1(object sender, EventArgs e) //обработка рендеринга
+        {
+            int counter = 0;
             using(var g = Graphics.FromImage(picDisplay.Image))
             {
                 g.Clear(Color.Black);
                 foreach(var emit in emitters)
                 {
                     emit.Render(g);
+                    counter += emit.CounterActiveRadar();
                 }
+
+                if(counter > 0)
+                {
+                    g.DrawString($"{counter}",
+                    new Font("Verdana", 12),
+                    new SolidBrush(Color.White),
+                    MousePositionX,
+                    MousePositionY + 15);
+				}
             }
 
             picDisplay.Invalidate();
@@ -369,8 +381,14 @@ namespace SystemParticles
             }
         }
 
-		private void _btnAddEmitter_Click(object sender, EventArgs e)
+		private void _btnAddEmitter_Click(object sender, EventArgs e) //добавление эммитера
 		{
+            if(radar)
+            {
+                MessageBox.Show("Ошибка: вы находитесь в режиме радара, выйдите из него чтобы продолжить настройку холста");
+                return;
+            }
+
             if((_txtGravitationX.Text.Length == 0) || (_txtGravitationY.Text.Length == 0)
                 || (_txtSpreading.Text.Length == 0) || (_txtDirection.Text.Length == 0)
                 || (_txtCountParticle.Text.Length == 0) || (_txtParticlePerTick.Text.Length == 0))
@@ -492,7 +510,7 @@ namespace SystemParticles
                     emitters[emitters.Count - 1].impactPoints.Add(point);
         }
 
-		private void _cmbStandType_TextChanged(object sender, EventArgs e)
+		private void _cmbStandType_TextChanged(object sender, EventArgs e) //установка специальных типов эммитера
 		{
             if(!ValidateComboBox(_cmbStandType, typeStandEmitter))
                 return;
@@ -526,6 +544,11 @@ namespace SystemParticles
 
 		private void _btnDeleteAllEmitter_Click(object sender, EventArgs e)
 		{
+            if(radar)
+            {
+                MessageBox.Show("Ошибка: вы находитесь в режиме радара, выйдите из него чтобы продолжить настройку холста");
+                return;
+            }
             emitters.Clear();
 		}
 
@@ -601,5 +624,58 @@ namespace SystemParticles
                 e.Handled = true;
 			}
         }
+
+		private void button1_Click_1(object sender, EventArgs e)
+		{
+            //активация / отключение радара
+            radar = !radar;
+			if(radar)
+			{
+                _txtStatusRadar.ForeColor = Color.Green;
+                _txtStatusRadar.Text = "Активен";
+                foreach(var emit in emitters)
+                    emit.impactPoints.Add(radarParticle); //при активации радара, он добавляется
+                //всем эмиттерам, для того, чтобы захватить все частицы
+			}
+			else
+			{
+                _txtStatusRadar.ForeColor = Color.Red;
+                _txtStatusRadar.Text = "Не активен";
+                foreach(var emit in emitters)
+                {
+                    int index = (-1);
+                    for(int i = 0; (i < emit.impactPoints.Count) && (index < 0); i++)
+                    {
+                        if(emit.impactPoints[i] is ParticleRadar)
+                            index = i;
+                    }
+
+                    if(index >= 0)
+                        emit.impactPoints.RemoveAt(index);
+                    emit.AllNoActiveParticle();
+                }
+            }
+		}
+
+		private void pictureBox1_Click(object sender, EventArgs e)
+		{
+            if(_cdRadarColor.ShowDialog() == DialogResult.Cancel)
+                return;
+
+            pictureBox1.BackColor = _cdRadarColor.Color;
+            radarParticle.color = _cdRadarColor.Color; //установка цвета, которым радар будет выделять 
+            //частицы попавшие в область радара
+        }
+
+        //обработка движения ползунка мыши
+        private void picDisplay_MouseWheel(object sender, MouseEventArgs e)
+		{
+			if(radar)
+			{
+                int number = e.Delta * SystemInformation.MouseWheelScrollLines / 30;
+                if((radarParticle.Power + number) >= 0)
+                    radarParticle.Power += number;
+			}
+		}
 	}
 }

@@ -116,7 +116,23 @@ namespace SystemParticles
 				//каждой частице передаём позицию указателя мыши на холстке pictureDisplay
 				particle.MousePositionX = MousePositionX;
 				particle.MousePositionY = MousePositionY;
-				particle.Draw(g);
+				particle.FromColor = ColorFrom;
+				particle.ToColor = ColorTo;
+
+				foreach(var point in impactPoints)
+				{
+					if(point is ParticleRadar)
+					{
+						point.ImpactParticle(particle);
+					}
+				}
+
+				if(particle.ActiveRadar)
+				{
+					particle.DrawRadar(g);
+				}
+				else
+					particle.Draw(g);
 			}
 
 			foreach(var point in impactPoints)
@@ -175,7 +191,11 @@ namespace SystemParticles
 				beginStateParticle.Remove(part);
 		}
 
-		public Particle GetClickedParticle() //возвращяет ссылку на частицу, на которую был совершён клик
+		/// <summary>
+		/// Поиск частицы, на которую был совершён клик
+		/// </summary>
+		/// <returns>Частица на которую был совершён клик</returns>
+		public Particle GetClickedParticle()
 		{
 			Particle part = null;
 			foreach(var particle in particles)
@@ -189,6 +209,33 @@ namespace SystemParticles
 			}
 
 			return part;
+		}
+
+		/// <summary>
+		/// Подсчёт количества частиц принадлежащих области действия радара
+		/// </summary>
+		/// <returns>Количество частиц принадлежащих области действия радара</returns>
+		public int CounterActiveRadar()
+		{
+			int counter = 0; //возврат числа частиц, которые попали в область действия радара
+			foreach(var particle in particles)
+			{
+				if(particle.ActiveRadar)
+					counter++;
+			}
+
+			return counter;
+		}
+
+		/// <summary>
+		/// Отменяет принадлежность к области радара всем частицам
+		/// </summary>
+		public void AllNoActiveParticle()
+		{
+			foreach(var particle in particles)
+			{
+				particle.ActiveRadar = false;
+			}
 		}
 	}
 
@@ -365,6 +412,47 @@ namespace SystemParticles
 		{
 			g.DrawEllipse(
 				   new Pen(Color.Yellow),
+				   X - Power / 2,
+				   Y - Power / 2,
+				   Power,
+				   Power
+			   );
+		}
+	}
+
+	/// <summary>
+	/// Класс реализующий логику радара
+	/// </summary>
+	public class ParticleRadar : IImpactPoint
+	{
+		public int Power = 100;
+		public Color color = Color.Green;	//цвет в который нужно перекрасить частицы
+		public int count = 0;				//количество частиц
+		public override void ImpactParticle(Particle particle)
+		{
+			float gX = X - particle.X;
+			float gY = Y - particle.Y;
+
+			double r = Math.Sqrt(gX * gX + gY * gY);
+			if(r + particle.Radius < Power / 2)
+			{
+				particle.FromColor = color;
+				particle.ToColor = color;
+				particle.ActiveRadar = true;
+			}
+			else
+				particle.ActiveRadar = false;
+		}
+
+		public override void AntiImpactParticle(Particle particle)
+		{
+			ImpactParticle(particle);
+		}
+
+		public override void Render(Graphics g)
+		{
+			g.DrawEllipse(
+				   new Pen(Color.OrangeRed),
 				   X - Power / 2,
 				   Y - Power / 2,
 				   Power,
